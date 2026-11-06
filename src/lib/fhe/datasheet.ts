@@ -9,6 +9,7 @@ import {
   frameTendency, iconicRequirement, identitySentence, sizeMass, poolAllows, validateInputs,
 } from "./core";
 import { species, displayName, type SpeciesEntry } from "./registry";
+import { pureBreedOf, type PureBreedView } from "./purebreed";
 
 export interface BreedRequest {
   parentA: number;
@@ -26,6 +27,7 @@ export interface ParentView {
   ratio: number;
   role: string;
   iconic: { visual: string; functional: string };
+  purebreed: PureBreedView;
 }
 
 export type ValidationStatus = "SIMULATION_READY" | "NEEDS_SPECIES_DATA";
@@ -75,8 +77,8 @@ export function buildDatasheet(req: BreedRequest, names: Record<number, string> 
     ? { visual: "Full iconic anatomy on the primary frame", functional: "Full, subject to arbitration with the minority's structures" }
     : iconicRequirement(r);
   const parents: [ParentView, ParentView] = [
-    { side: "A", entry: ea, name: na, ratio: c.ratioA, role: role(c.ratioA), iconic: iconic(c.ratioA) },
-    { side: "B", entry: eb, name: nb, ratio: c.ratioB, role: role(c.ratioB), iconic: iconic(c.ratioB) },
+    { side: "A", entry: ea, name: na, ratio: c.ratioA, role: role(c.ratioA), iconic: iconic(c.ratioA), purebreed: pureBreedOf(ea) },
+    { side: "B", entry: eb, name: nb, ratio: c.ratioB, role: role(c.ratioB), iconic: iconic(c.ratioB), purebreed: pureBreedOf(eb) },
   ];
 
   const L = ledger(req.cls, c.ratioA, req.config);

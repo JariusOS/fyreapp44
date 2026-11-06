@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.hybrid_generated": {
+      "event_schema_version": 1,
+      "description": "A hybrid datasheet was generated, from the form or from an opened shared link.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "class",
+          "parent_a",
+          "parent_b",
+          "ratio_a",
+          "enzyme"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "form",
+              "shared_link"
+            ]
+          },
+          "class": {
+            "type": "integer"
+          },
+          "parent_a": {
+            "type": "integer"
+          },
+          "parent_b": {
+            "type": "integer"
+          },
+          "ratio_a": {
+            "type": "integer"
+          },
+          "enzyme": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "project.parent_selected": {
+      "event_schema_version": 1,
+      "description": "A breeder picked a species for Parent A or Parent B.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "side",
+          "species_id"
+        ],
+        "properties": {
+          "side": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B"
+            ]
+          },
+          "species_id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "project.shared_link_opened": {
+      "event_schema_version": 1,
+      "description": "A visitor opened a shared datasheet link that names a valid hybrid recipe.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "class",
+          "parent_a",
+          "parent_b",
+          "ratio_a"
+        ],
+        "properties": {
+          "class": {
+            "type": "integer"
+          },
+          "parent_a": {
+            "type": "integer"
+          },
+          "parent_b": {
+            "type": "integer"
+          },
+          "ratio_a": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

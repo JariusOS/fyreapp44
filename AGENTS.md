@@ -33,4 +33,7 @@ use the editor.
 
 - FYRE Hybrid Engine rules live in `src/lib/fhe/` as pure, DOM-free modules (core, registry, datasheet); UI in `src/components/fhe/` only renders their output. Why: the engine must stay testable and identical to the original spec port.
 - `src/lib/fhe/registry.ts` is generated from `data/species_contracts.csv`; edit the CSV source of truth, not the list by hand. Why: keeps tickers and contracts in sync.
-- Species common names load in the browser from the FCBC species API with a ticker fallback; the app has no backend. Why: the source app was a static site with no data store.
+- Species common names load in the browser from the FCBC species API with a ticker fallback; the app has no database. Why: the source app was a static site with no data store.
+- PureBreed custodian and Syndicate addresses live in `data/purebreed_custodians.csv` (one row per ticker, blank = not assigned) and are read by `src/lib/fhe/purebreed.ts`. Why: real on-chain addresses are added as they become known, never guessed.
+- "Ask about this hybrid" runs through the `askHybrid` server function, which rebuilds the datasheet on the server from the recipe and grounds the AI answer in it. Why: answers must reflect engine output, not client-supplied numbers.
+- Analytics are `project.*` events fired with `window.__lovableEvents?.track?.` inside the existing handlers and registered in `.lovable/events.json`. Why: the built-in pipeline needs no SDK or keys.

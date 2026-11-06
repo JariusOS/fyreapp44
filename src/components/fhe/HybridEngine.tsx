@@ -3,6 +3,7 @@ import { CLASSES, ENGINE_ID, RATIOS, parseHybridName, type ClassNo, type Config 
 import { REGISTRY, SPECIES_API, displayName } from "@/lib/fhe/registry";
 import { buildDatasheet, type BreedRequest, type Datasheet } from "@/lib/fhe/datasheet";
 import { DatasheetView } from "./DatasheetView";
+import { HybridQA } from "./HybridQA";
 
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 const CLASS_LIST = Object.keys(CLASSES).map(Number) as ClassNo[];
@@ -74,7 +75,11 @@ export function HybridEngine() {
     }
   }, [request, names]);
 
-  const generate = (req: Omit<BreedRequest, "iteration">, iterationOverride?: number) => {
+  const generate = (
+    req: Omit<BreedRequest, "iteration">,
+    source: "form" | "shared_link",
+    iterationOverride?: number,
+  ) => {
     setError("");
     if (req.parentA === req.parentB) {
       setError("Choose two different species.");
@@ -86,6 +91,14 @@ export function HybridEngine() {
     iterations.current.set(key, it);
     scrollOnRender.current = true;
     setRequest({ ...req, iteration: it });
+    window.__lovableEvents?.track?.("project.hybrid_generated", {
+      source,
+      class: req.cls,
+      parent_a: req.parentA,
+      parent_b: req.parentB,
+      ratio_a: req.ratioA,
+      enzyme: req.config === "ENZYME",
+    });
   };
 
   // Shareable links: open #iv7030-0007:0008-000236 to regenerate that datasheet.
@@ -98,7 +111,13 @@ export function HybridEngine() {
       setParentB(p.b);
       setRatio(p.ratioA);
       setCls(p.cls);
-      generate({ parentA: p.a, parentB: p.b, ratioA: p.ratioA, cls: p.cls, config: "STANDARD" }, p.iteration);
+      window.__lovableEvents?.track?.("project.shared_link_opened", {
+        class: p.cls,
+        parent_a: p.a,
+        parent_b: p.b,
+        ratio_a: p.ratioA,
+      });
+      generate({ parentA: p.a, parentB: p.b, ratioA: p.ratioA, cls: p.cls, config: "STANDARD" }, "shared_link", p.iteration);
     } catch {
       /* ignore bad hash */
     }
@@ -121,7 +140,12 @@ export function HybridEngine() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     const config: Config = useEnzyme ? "ENZYME" : "STANDARD";
-    generate({ parentA, parentB, ratioA: ratio, cls, config });
+    generate({ parentA, parentB, ratioA: ratio, cls, config }, "form");
+  };
+
+  const selectParent = (side: "A" | "B", id: number) => {
+    (side === "A" ? setParentA : setParentB)(id);
+    window.__lovableEvents?.track?.("project.parent_selected", { side, species_id: id });
   };
 
   const swap = () => {
@@ -158,7 +182,7 @@ export function HybridEngine() {
               className="fhe-select fhe-select-a"
               aria-label="Parent A species"
               value={parentA}
-              onChange={(e) => setParentA(Number(e.target.value))}
+              onChange={(e) => selectParent("A", Number(e.target.value))}
             >
               {options}
             </select>
@@ -172,7 +196,7 @@ export function HybridEngine() {
               className="fhe-select fhe-select-b"
               aria-label="Parent B species"
               value={parentB}
-              onChange={(e) => setParentB(Number(e.target.value))}
+              onChange={(e) => selectParent("B", Number(e.target.value))}
             >
               {options}
             </select>
@@ -230,7 +254,12 @@ export function HybridEngine() {
         <p className="fhe-api">{status}</p>
       </form>
 
-      {sheet && "d" in sheet && <DatasheetView ref={sheetRef} d={sheet.d} />}
+      {sheet && "d" in sheet && request && (
+        <>
+          <DatasheetView ref={sheetRef} d={sheet.d} />
+          <HybridQA key={sheet.d.name} request={request} d={sheet.d} />
+        </>
+      )}
     </main>
   );
 }

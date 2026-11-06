@@ -3,6 +3,7 @@ import type { LedgerRow } from "@/lib/fhe/core";
 import type { Datasheet, ParentView } from "@/lib/fhe/datasheet";
 
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`;
 const pct = (n: number, d = 0) => `${(n * 100).toFixed(d)}%`;
 const kg = (n: number) =>
   n < 1 ? `${(n * 1000).toFixed(n < 0.01 ? 1 : 0)} g` : `${n.toFixed(n < 10 ? 2 : 1)} kg`;
@@ -19,6 +20,7 @@ const LEDGER_ROWS: [string, keyof LedgerRow, string][] = [
 
 function ParentCard({ p }: { p: ParentView }) {
   const c = p.entry.contract;
+  const pb = p.purebreed;
   return (
     <div className={`fhe-parent ${p.side === "A" ? "fhe-parent-a" : "fhe-parent-b"}`}>
       <div className="fhe-pid">
@@ -45,8 +47,31 @@ function ParentCard({ p }: { p: ParentView }) {
         <dt>DNA contract</dt>
         <dd className="fhe-mono">
           <a href={`https://basescan.org/token/${c}`} target="_blank" rel="noopener noreferrer">
-            {c.slice(0, 8)}…{c.slice(-6)}
+            {short(c)}
           </a>
+        </dd>
+        <dt>PureBreed custodian</dt>
+        <dd>
+          <span className="fhe-mono">
+            <a href={`https://basescan.org/address/${pb.custodian}`} target="_blank" rel="noopener noreferrer">
+              {short(pb.custodian)}
+            </a>
+          </span>
+          {!pb.custodianAssigned && <span className="fhe-sub"> Not assigned yet; ecosystem address receives the 2%</span>}
+        </dd>
+        <dt>Hybrid pool</dt>
+        <dd>
+          {pb.syndicateName}
+          {pb.syndicateAddress ? (
+            <span className="fhe-mono">
+              {" · "}
+              <a href={`https://basescan.org/address/${pb.syndicateAddress}`} target="_blank" rel="noopener noreferrer">
+                {short(pb.syndicateAddress)}
+              </a>
+            </span>
+          ) : (
+            <span className="fhe-sub"> Address pending</span>
+          )}
         </dd>
       </dl>
     </div>
