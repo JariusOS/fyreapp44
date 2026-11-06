@@ -18,7 +18,7 @@ const LEDGER_ROWS: [string, keyof LedgerRow, string][] = [
   ["Net cost to breeder", "netCost", ""],
 ];
 
-function ParentCard({ p }: { p: ParentView }) {
+function ParentCard({ p, onOpenSyndicate }: { p: ParentView; onOpenSyndicate?: (p: ParentView) => void }) {
   const c = p.entry.contract;
   const pb = p.purebreed;
   return (
@@ -29,6 +29,12 @@ function ParentCard({ p }: { p: ParentView }) {
       <div className="fhe-pname">{p.name}</div>
       {p.entry.scientificName && <div className="fhe-sci">{p.entry.scientificName}</div>}
       <div className="fhe-pratio">{p.ratio}%</div>
+      <p className="fhe-profile">{p.profile}</p>
+      {onOpenSyndicate && (
+        <button type="button" className="fhe-syn-open" onClick={() => onOpenSyndicate(p)}>
+          View {pb.syndicateName} <span aria-hidden="true">→</span>
+        </button>
+      )}
       <dl className="fhe-dl">
         <dt>Role</dt>
         <dd>{p.role}</dd>
@@ -78,7 +84,10 @@ function ParentCard({ p }: { p: ParentView }) {
   );
 }
 
-export const DatasheetView = forwardRef<HTMLElement, { d: Datasheet }>(function DatasheetView({ d }, ref) {
+export const DatasheetView = forwardRef<
+  HTMLElement,
+  { d: Datasheet; onOpenSyndicate?: (p: ParentView) => void }
+>(function DatasheetView({ d, onOpenSyndicate }, ref) {
   const [A, B] = d.parents;
   const cp = d.classProfile;
   const ready = d.validation.status === "SIMULATION_READY";
@@ -101,16 +110,19 @@ export const DatasheetView = forwardRef<HTMLElement, { d: Datasheet }>(function 
           </span>
         </div>
         <p className="fhe-iter">
-          Iteration {d.name.slice(-6)} is a preview count for this recipe in this browser; the ledger
+          Iteration {d.name.slice(-6)} counts this recipe among hybrids generated so far; the ledger
           assigns the real iteration at settlement.
         </p>
       </header>
 
       <section className="fhe-section">
         <h3 className="fhe-h3">Parents</h3>
+        <p className="fhe-note fhe-parents-note">
+          Each parent is a Syndicate. This hybrid joins both. Tap a parent's Syndicate to see every hybrid under it.
+        </p>
         <div className="fhe-parents">
-          <ParentCard p={A} />
-          <ParentCard p={B} />
+          <ParentCard p={A} {...(onOpenSyndicate ? { onOpenSyndicate } : {})} />
+          <ParentCard p={B} {...(onOpenSyndicate ? { onOpenSyndicate } : {})} />
         </div>
       </section>
 

@@ -32,6 +32,12 @@ describe("PureBreed custodians and Syndicates", () => {
     expect(v.syndicateAddress).toBeNull();
   });
 
+  it("a parent's brief profile only uses recorded species data", () => {
+    const d = buildDatasheet({ parentA: 1, parentB: 8, ratioA: 30, cls: 1, config: "STANDARD", iteration: 1 });
+    expect(d.parents[0].profile).toBe("30% of the DNA · species data draft");
+    expect(d.parents[1].profile).toBe("70% of the DNA · Critically endangered (CR) · adult about 1,600 kg · species data partial");
+  });
+
   it("each PureBreed's hybrid pool is its own Syndicate", () => {
     expect(pureBreedOf({ ticker: "FCBC8" }).syndicateName).toBe("FCBC8 Syndicate");
     const d = buildDatasheet({ parentA: 7, parentB: 8, ratioA: 50, cls: 5, config: "STANDARD", iteration: 1 });

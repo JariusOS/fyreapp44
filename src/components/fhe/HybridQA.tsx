@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { BreedRequest, Datasheet } from "@/lib/fhe/datasheet";
 import { askHybrid } from "@/lib/hybrid-qa.functions";
+import { MessageCircleQuestion } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 interface Turn {
   role: "user" | "assistant";
@@ -21,6 +23,7 @@ export function HybridQA({ request, d }: { request: BreedRequest; d: Datasheet }
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
 
   const send = async (q: string) => {
     const text = q.trim();
@@ -63,12 +66,23 @@ export function HybridQA({ request, d }: { request: BreedRequest; d: Datasheet }
   };
 
   return (
-    <section className="fhe-panel fhe-qa" aria-label="Ask about this hybrid">
-      <h2 className="fhe-h3">Ask about this hybrid</h2>
-      <p className="fhe-note fhe-qa-intro">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        className="fhe-fab"
+        aria-label="Ask about this hybrid"
+        title="Ask about this hybrid"
+        onClick={() => setOpen(true)}
+      >
+        <MessageCircleQuestion aria-hidden="true" />
+        {turns.length > 0 && <span className="fhe-fab-dot" aria-hidden="true" />}
+      </button>
+      <DialogContent className="fhe-dialog fhe-qa">
+      <DialogTitle className="fhe-dialog-title">Ask about this hybrid</DialogTitle>
+      <DialogDescription className="fhe-note fhe-qa-intro">
         Answers come only from this datasheet: genetic expression, class profile and DNA spending. Pending
         sections stay pending.
-      </p>
+      </DialogDescription>
 
       {turns.length === 0 && (
         <div className="fhe-qa-suggest">
@@ -108,6 +122,7 @@ export function HybridQA({ request, d }: { request: BreedRequest; d: Datasheet }
       <p className="fhe-error" role="alert">
         {error}
       </p>
-    </section>
+      </DialogContent>
+    </Dialog>
   );
 }

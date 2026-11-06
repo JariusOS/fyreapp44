@@ -28,6 +28,25 @@ export interface ParentView {
   role: string;
   iconic: { visual: string; functional: string };
   purebreed: PureBreedView;
+  /** One-line brief profile built only from recorded species data. */
+  profile: string;
+}
+
+const IUCN_WORDS: Record<string, string> = {
+  EX: "Extinct", EW: "Extinct in the wild", CR: "Critically endangered", EN: "Endangered",
+  VU: "Vulnerable", NT: "Near threatened", LC: "Least concern", DD: "Data deficient", NE: "Not evaluated",
+};
+
+const massText = (n: number) =>
+  n < 1 ? `${Math.round(n * 1000 * 10) / 10} g` : `${n.toLocaleString("en-US", { maximumFractionDigits: n < 10 ? 2 : 0 })} kg`;
+
+export function briefProfile(e: SpeciesEntry, ratio: number): string {
+  const parts: string[] = [];
+  parts.push(`${ratio}% of the DNA`);
+  if (e.iucn) parts.push(IUCN_WORDS[e.iucn] ? `${IUCN_WORDS[e.iucn]} (${e.iucn})` : `IUCN ${e.iucn}`);
+  if (e.massKg !== undefined) parts.push(`adult about ${massText(e.massKg)}`);
+  parts.push(`species data ${e.pool.toLowerCase()}`);
+  return parts.join(" · ");
 }
 
 export type ValidationStatus = "SIMULATION_READY" | "NEEDS_SPECIES_DATA";
@@ -77,8 +96,8 @@ export function buildDatasheet(req: BreedRequest, names: Record<number, string> 
     ? { visual: "Full iconic anatomy on the primary frame", functional: "Full, subject to arbitration with the minority's structures" }
     : iconicRequirement(r);
   const parents: [ParentView, ParentView] = [
-    { side: "A", entry: ea, name: na, ratio: c.ratioA, role: role(c.ratioA), iconic: iconic(c.ratioA), purebreed: pureBreedOf(ea) },
-    { side: "B", entry: eb, name: nb, ratio: c.ratioB, role: role(c.ratioB), iconic: iconic(c.ratioB), purebreed: pureBreedOf(eb) },
+    { side: "A", entry: ea, name: na, ratio: c.ratioA, role: role(c.ratioA), iconic: iconic(c.ratioA), purebreed: pureBreedOf(ea), profile: briefProfile(ea, c.ratioA) },
+    { side: "B", entry: eb, name: nb, ratio: c.ratioB, role: role(c.ratioB), iconic: iconic(c.ratioB), purebreed: pureBreedOf(eb), profile: briefProfile(eb, c.ratioB) },
   ];
 
   const L = ledger(req.cls, c.ratioA, req.config);

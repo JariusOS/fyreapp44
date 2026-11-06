@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
-import { CLASSES, ENGINE_ID, RATIOS, parseHybridName, type ClassNo, type Config } from "@/lib/fhe/core";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { CLASSES, ENGINE_ID, RATIOS, isClassNo, parseHybridName, type ClassNo, type Config } from "@/lib/fhe/core";
 import { REGISTRY, SPECIES_API, displayName } from "@/lib/fhe/registry";
-import { buildDatasheet, type BreedRequest, type Datasheet } from "@/lib/fhe/datasheet";
+import { buildDatasheet, type BreedRequest, type Datasheet, type ParentView } from "@/lib/fhe/datasheet";
+import { recordHybrid, type HybridRecord } from "@/lib/hybrids.functions";
 import { DatasheetView } from "./DatasheetView";
 import { HybridQA } from "./HybridQA";
+import { SyndicateDialog } from "./SyndicateDialog";
 
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 const CLASS_LIST = Object.keys(CLASSES).map(Number) as ClassNo[];
@@ -55,10 +59,15 @@ export function HybridEngine() {
   const [cls, setCls] = useState<ClassNo>(5);
   const [useEnzyme, setUseEnzyme] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
   const [request, setRequest] = useState<BreedRequest | null>(null);
-  const iterations = useRef(new Map<string, number>()); // preview only; the ledger assigns real iterations
+  const [syndicateOf, setSyndicateOf] = useState<ParentView | null>(null);
+  const iterations = useRef(new Map<string, number>()); // fallback only when the shared record is unreachable
   const sheetRef = useRef<HTMLElement>(null);
   const scrollOnRender = useRef(false);
+  const saveHybrid = useServerFn(recordHybrid);
+  const queryClient = useQueryClient();
 
   const label = (id: number) => {
     const e = REGISTRY[id - 1]!;
@@ -75,22 +84,45 @@ export function HybridEngine() {
     }
   }, [request, names]);
 
-  const generate = (
+  const show = (req: BreedRequest) => {
+    scrollOnRender.current = true;
+    setRequest(req);
+  };
+
+  const generate = async (
     req: Omit<BreedRequest, "iteration">,
     source: "form" | "shared_link",
     iterationOverride?: number,
   ) => {
     setError("");
+    setNotice("");
     if (req.parentA === req.parentB) {
       setError("Choose two different species.");
       return;
     }
     const { parentA: a, parentB: b, ratioA } = req;
     const key = `${req.cls}|${Math.min(a, b)}|${Math.max(a, b)}|${a < b ? ratioA : 100 - ratioA}`;
-    const it = iterationOverride ?? (iterations.current.get(key) ?? 0) + 1;
+    let it = iterationOverride;
+    if (it === undefined) {
+      // Save to the shared record so the hybrid joins both parents' Syndicates.
+      setSaving(true);
+      try {
+        const res = await saveHybrid({ data: req });
+        if (res.ok) {
+          it = res.iteration;
+          void queryClient.invalidateQueries({ queryKey: ["syndicate"] });
+        } else {
+          setNotice(`${res.error} Showing a local preview; it won't appear in the Syndicates.`);
+        }
+      } catch {
+        setNotice("Could not reach the Syndicate record. Showing a local preview; it won't appear in the Syndicates.");
+      } finally {
+        setSaving(false);
+      }
+      it ??= (iterations.current.get(key) ?? 0) + 1;
+    }
     iterations.current.set(key, it);
-    scrollOnRender.current = true;
-    setRequest({ ...req, iteration: it });
+    show({ ...req, iteration: it });
     window.__lovableEvents?.track?.("project.hybrid_generated", {
       source,
       class: req.cls,
@@ -117,7 +149,11 @@ export function HybridEngine() {
         parent_b: p.b,
         ratio_a: p.ratioA,
       });
-      generate({ parentA: p.a, parentB: p.b, ratioA: p.ratioA, cls: p.cls, config: "STANDARD" }, "shared_link", p.iteration);
+      void generate(
+        { parentA: p.a, parentB: p.b, ratioA: p.ratioA, cls: p.cls, config: "STANDARD" },
+        "shared_link",
+        p.iteration,
+      );
     } catch {
       /* ignore bad hash */
     }
@@ -139,8 +175,23 @@ export function HybridEngine() {
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     const config: Config = useEnzyme ? "ENZYME" : "STANDARD";
-    generate({ parentA, parentB, ratioA: ratio, cls, config }, "form");
+    void generate({ parentA, parentB, ratioA: ratio, cls, config }, "form");
+  };
+
+  // Open a hybrid from a Syndicate list: same datasheet and saved iteration, no new record.
+  const openHybrid = (h: HybridRecord) => {
+    if (!isClassNo(h.cls)) return;
+    setSyndicateOf(null);
+    setError("");
+    setNotice("");
+    setParentA(h.parentA);
+    setParentB(h.parentB);
+    setRatio(h.ratioA);
+    setCls(h.cls);
+    setUseEnzyme(h.config === "ENZYME");
+    show({ parentA: h.parentA, parentB: h.parentB, ratioA: h.ratioA, cls: h.cls, config: h.config, iteration: h.iteration });
   };
 
   const selectParent = (side: "A" | "B", id: number) => {
@@ -248,16 +299,24 @@ export function HybridEngine() {
         <p className="fhe-error" role="alert">
           {error}
         </p>
-        <button type="submit" className="fhe-go">
-          Generate datasheet
+        <button type="submit" className="fhe-go" disabled={saving}>
+          {saving ? "Generating…" : "Generate datasheet"}
         </button>
+        {notice && <p className="fhe-note fhe-notice">{notice}</p>}
         <p className="fhe-api">{status}</p>
       </form>
 
       {sheet && "d" in sheet && request && (
         <>
-          <DatasheetView ref={sheetRef} d={sheet.d} />
+          <DatasheetView ref={sheetRef} d={sheet.d} onOpenSyndicate={setSyndicateOf} />
           <HybridQA key={sheet.d.name} request={request} d={sheet.d} />
+          <SyndicateDialog
+            parent={syndicateOf}
+            names={names}
+            currentName={sheet.d.name}
+            onClose={() => setSyndicateOf(null)}
+            onOpenHybrid={openHybrid}
+          />
         </>
       )}
     </main>
