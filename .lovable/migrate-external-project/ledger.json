@@ -1,0 +1,125 @@
+{
+  "source": "code-archive: FYRE-hybrid-engine-v1.zip",
+  "stack": "Static single-page TypeScript app (no framework, no runtime dependencies)",
+  "capabilities": [
+    {
+      "capability": "code: engine rules (naming, ledger, bands, class, size, gates)",
+      "source": "src/fhe/core.ts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "code: 234-species registry",
+      "source": "src/fhe/registry.ts + data/species_contracts.csv",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "code: datasheet builder",
+      "source": "src/fhe/datasheet.ts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "code: interface (breed form + datasheet)",
+      "source": "index.html, src/ui/app.ts, styles.css",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "shareable links via #hybrid-name",
+      "source": "src/ui/app.ts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "per-recipe preview iteration counter (in-memory)",
+      "source": "src/ui/app.ts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "external provider: FCBC species names API (browser fetch)",
+      "source": "https://server.fcbc.fun/api/v1/zora/species",
+      "outcome": "preserve",
+      "status": "preserved-unverified",
+      "next_action": "Browser fetch kept with ticker fallback; API not reachable from the build sandbox, so live names are untested"
+    },
+    {
+      "capability": "engine tests",
+      "source": "tests/core.test.ts",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "schema",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "No database in source"
+    },
+    {
+      "capability": "records",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "No data store in source; species data is bundled in code"
+    },
+    {
+      "capability": "auth identities / authorization",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "No user accounts in source"
+    },
+    {
+      "capability": "uploaded files / storage",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "None"
+    },
+    {
+      "capability": "public endpoints / webhooks / schedules",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "None"
+    },
+    {
+      "capability": "secrets",
+      "source": "none",
+      "outcome": "not-applicable",
+      "status": "verified",
+      "next_action": "No environment variables used"
+    },
+    {
+      "capability": "metadata (title, description)",
+      "source": "index.html",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    },
+    {
+      "capability": "cutover",
+      "source": "self-hosted static site",
+      "outcome": "user-action",
+      "status": "pending",
+      "next_action": "User publishes in Lovable and points any existing links to the new URL"
+    },
+    {
+      "capability": "verification",
+      "source": "-",
+      "outcome": "verify",
+      "status": "verified",
+      "next_action": "Done: ported, 400+ engine checks pass, browser-checked on mobile"
+    }
+  ]
+}

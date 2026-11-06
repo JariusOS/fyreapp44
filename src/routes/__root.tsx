@@ -78,14 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "FYRE Hybrid Engine" },
+      { name: "description", content: "Combine two FCBC DNA tokens and generate a Fyre Hybrid datasheet." },
+      { name: "author", content: "FCBC Club" },
+      { property: "og:title", content: "FYRE Hybrid Engine" },
+      { property: "og:description", content: "Combine two FCBC DNA tokens and generate a Fyre Hybrid datasheet." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

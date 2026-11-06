@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- FYRE Hybrid Engine rules live in `src/lib/fhe/` as pure, DOM-free modules (core, registry, datasheet); UI in `src/components/fhe/` only renders their output. Why: the engine must stay testable and identical to the original spec port.
+- `src/lib/fhe/registry.ts` is generated from `data/species_contracts.csv`; edit the CSV source of truth, not the list by hand. Why: keeps tickers and contracts in sync.
+- Species common names load in the browser from the FCBC species API with a ticker fallback; the app has no backend. Why: the source app was a static site with no data store.
